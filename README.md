@@ -1,91 +1,88 @@
-# CMK Voice Clone API
+# 🎙️ CMK Voice Clone — Colab (အလကား)
 
-ကိုယ်ပိုင် voice clone service။ အသံတို တစ်ခု upload လုပ်ထားရုံနဲ့
-စာမှန်သမျှ — မြန်မာလို အပါအဝင် — ကို အဲဒီအသံနဲ့ ပြောခိုင်းလို့ရတယ်။
-
-VoxCPM (openbmb) ကို အခြေခံထားတဲ့ ကိုယ်ပိုင် implementation။
+Google Colab ရဲ့ **အလကား GPU** သုံးပြီး voice clone လုပ်တဲ့နည်း။
+ပိုက်ဆံ ပေးစရာ မလိုဘူး။
 
 ---
 
-## အလုပ်လုပ်ပုံ
+## လိုအပ်တာ
 
-1. **အသံသွင်း** — ၁၀–၃၀ စက္ကန့်၊ ရှင်းရှင်းလင်းလင်း ပြောထားတာ (ဖုန်းနဲ့ သွင်းလဲ ရတယ်)။
-2. **Upload လုပ်** — သွင်းထားတဲ့ စကားရဲ့ စာသား အတိအကျ နဲ့ တွဲတင်ပေး။
-   စာသား မှန်မှ model က အသံကို မိမိရရ ဖမ်းနိုင်မယ်။
-3. **စာထည့် ပြောခိုင်း** — `/tts` ကို `voice_id` နဲ့ စာပို့၊ WAV ပြန်ရမယ်။
+- Google account (Gmail)
+- ဒီ repo က `cmk-voice-clone-colab.ipynb` ဖိုင်
 
-Model (VoxCPM) က ပထမဆုံး run တဲ့အခါ Hugging Face ကနေ သူ့ဘာသာ download
-လုပ်တယ်။ ကိုယ်တိုင် ဘာမှ ဆွဲစရာ မလိုဘူး။
+## အသုံးပြုနည်း
 
-## API အတိုချုပ်
+### 1. Notebook ဖွင့်
 
-| Method | Path             | ဘာလုပ်လဲ                                              |
-|--------|------------------|--------------------------------------------------------|
-| GET    | `/health`        | Model load ပြီးပြီလား? ဘယ် device? voice ဘယ်နှခု?      |
-| GET    | `/voices`        | ဒီ server မှာ သိမ်းထားတဲ့ voice တွေ                   |
-| POST   | `/upload-voice`  | Form: `audio` file, `name`, `prompt_text` → `voice_id` |
-| POST   | `/tts`           | JSON: `text`, `voice_id` (+ `guide`, `steps` ရွေးနိုင်) |
-| POST   | `/clone`         | တစ်ခါသုံး: `audio` + `text` → WAV, ဘာမှ မသိမ်းဘူး       |
-| POST   | `/style-voice`   | JSON: `text`, `style` ("warm narrator") — sample မလို  |
+**နည်း A — Colab ကနေ တိုက်ရိုက်:**
 
-အသံအဝင်/အထွက် အားလုံး 16 kHz mono WAV။ Response က WAV bytes အတိုင်း။
+1. [colab.research.google.com](https://colab.research.google.com) ဖွင့်
+2. **File** → **Open notebook** → **GitHub** tab
+3. `danielmin-hub/cmk-voice-clone` ရိုက် → `cmk-voice-clone-colab.ipynb` ရွေး
 
-Voice register လုပ်တဲ့ နမူနာ (curl):
+**နည်း B — ဖိုင် download လုပ်ပြီး:**
 
-```bash
-curl -X POST http://POD_IP:8000/upload-voice \
-  -F "audio=@my-voice.wav" \
-  -F "name=ကျွန်တော့်အသံ" \
-  -F "prompt_text=သွင်းထားတဲ့ စကား အတိအကျ"
-# -> {"voice_id": "a1b2c3d4e5f6", "label": "ကျွန်တော့်အသံ"}
-```
+1. ဒီ repo က `cmk-voice-clone-colab.ipynb` ကို download
+2. Colab မှာ **File** → **Upload notebook**
 
-စာထည့် ပြောခိုင်းတဲ့ နမူနာ:
+### 2. GPU ပြောင်း
 
-```bash
-curl -X POST http://POD_IP:8000/tts \
-  -H "Content-Type: application/json" \
-  -d '{"text": "မင်္ဂလာပါ", "voice_id": "a1b2c3d4e5f6"}' \
-  --output out.wav
-```
+**Runtime** → **Change runtime type** → **Hardware accelerator: T4 GPU** → **Save**
 
-## RunPod မှာ တင်နည်း
+### 3. Cell တွေ Run
 
-1. **Account + ပိုက်ဆံ** — runpod.io မှာ sign up လုပ်၊ $10 လောက် credit ထည့် စမ်းကြည့်။
-2. **Code ကို pod ပေါ် တင်။** အလွယ်ဆုံး: ဒီ ၄ ဖိုင်ကို GitHub repo မှာ တင်၊
-   RunPod မှာ *Pods → Deploy → Build from GitHub* ရွေး၊ repo ကို ညွှန်။
-3. **GPU ရွေး။** A40 (~$0.49/hr) က မူရင်း 0.5B model အတွက် လုံလောက်တယ်။
-   VoxCPM 1.5/2 အကြီးတွေ သုံးချင်ရင် VRAM 16 GB+ လိုတယ်။
-4. **Port 8000** (TCP) ဖွင့် — API ကို လှမ်းခေါ်လို့ရအောင်။
-5. **Network volume ကို `/workspace` မှာ attach လုပ်။** ဒါမလုပ်ရင်
-   pod restart တိုင်း upload လုပ်ထားတဲ့ voice တွေ ပျောက်မယ်။
-6. **Deploy နှိပ် စောင့်။** ပထမဆုံး boot မှာ model (~1.5 GB) download လုပ်
-   တယ် — ၅–၁၀ မိနစ် ပေးထား၊ ပြီးရင် `http://POD_IP:8000/health` ဖွင့်။
-   `"status": "ok"` ပြရင် အဆင်သင့်ဖြစ်ပြီ။
+အပေါ်ကနေ အောက်ကို အစဉ်လိုက် ▶️ နှိပ်:
 
-### Model ပြောင်းချင်ရင်
+| Cell | ဘာလုပ်လဲ | ကြာချိန် |
+| --- | --- | --- |
+| 1 | Packages သွင်း | ၁-၂ မိနစ် |
+| 2 | Drive ချိတ် (Allow နှိပ်) | စက္ကန့်ပိုင်း |
+| 3 | Model download + load | ၅-၁၀ မိနစ် (ပထမဆုံး) |
+| 4 | Core engine | စက္ကန့်ပိုင်း |
+| 5 | Web UI စတင် | စက္ကန့်ပိုင်း |
 
-Pod env var `CMK_VOX_MODEL` သတ်မှတ်:
+### 4. အသံထုတ်
 
-- `openbmb/VoxCPM-0.5B` — မူရင်း၊ ~1.5 GB၊ VRAM 8 GB နဲ့ ရတယ်
-- `openbmb/VoxCPM1.5` — ~1.9 GB၊ အရည်အသွေး ပိုကောင်း
-- `openbmb/VoxCPM2` — ~4.6 GB၊ အကောင်းဆုံး၊ VRAM 16 GB+ လိုတယ်
+Cell 5 run ပြီးရင် **Gradio link** ပေါ်လာမယ် → နှိပ်:
 
-ကျန်တဲ့ setting တွေ: `CMK_GEN_TIMEOUT` (စက္ကန့်၊ မူရင်း 900),
-denoiser ဖွင့်ချင်ရင် `CMK_USE_DENOISER=1`, `PORT`။
+**🎤 Clone Voice tab:**
 
-## အသံလှလှ ရအောင် အကြံပြုချက်
+1. 📝 စာသား ထည့် (ပြောခိုင်းချင်တဲ့ စာ)
+2. 🎵 ကိုယ့်အသံဖိုင် တင် (WAV အကောင်းဆုံး, ၁၀-၃၀ စက္ကန့်)
+3. 📄 Reference Text ထည့် (အသံဖိုင်ထဲ ပြောထားတဲ့ စကား အတိအကျ)
+4. **🎤 Clone ပြီး ထုတ်မယ်** နှိပ်
 
-- တိတ်ဆိတ်တဲ့ အခန်းမှာ သွင်း၊ ၁၀–၃၀ စက္ကန့်၊ သဘာဝကျကျ ပြော။
-- `prompt_text` က သွင်းထားတဲ့ အသံနဲ့ **စကားလုံး အတိအကျ** တူရမယ်။
-- မြန်မာစာ ရတယ် — `။` ကို စာကြောင်းဆုံး အဖြစ် နားလည်တယ်။
-- အထွက် မြန်နေသလို ခံစားရရင် `guide` လျှော့ (1.6 စမ်း); အသံကို
-  မလိုက်ဘူးဆို `guide` မြှင့် (2.6 စမ်း)။
+**🎭 Preset Voice tab:**
 
-## သိထားရမယ့် ကန့်သတ်ချက်တွေ
+- ကြိုတင်သတ်မှတ်ထားတဲ့ voice တွေနဲ့ ထုတ် (VOICE\_DATABASE မှာ ထည့်ထားရင်)
 
-- Pod တစ်ခု တစ်ခါ တစ်ခု ပဲ ထုတ်ပေးနိုင်တယ် (GPU အလုပ် တန်းစီရတယ်)။
-  လူများများ သုံးမယ်ဆို pod နှစ်ခု run။
-- Streaming မရဘူး — request တစ်ခုချင်းစီ WAV အပြည့်ပြန်ပေးတယ်။
-- မြန်မာ အထွက် အရည်အသွေး ကို အသံအစစ်နဲ့ စမ်းကြည့်ပြီးမှ
-  တကယ် သုံးဖို့ ဆုံးဖြတ်။
+**✨ Prompt Voice tab:**
+
+- Style ရေးပြီး အသံထုတ် (ဥပမာ: "young male, calm and clear")
+
+### 5. Output ယူ
+
+- ထုတ်ပြီးသား အသံက **Drive** ထဲမှာ auto-save: `MyDrive/CMK_VoiceClone/outputs/`
+- Gradio UI ကနေလဲ download လို့ရတယ်
+
+---
+
+## အကြံပြုချက်များ
+
+- 🎤 **အသံသွင်းတာ:** တိတ်ဆိတ်တဲ့ အခန်း, ၁၀-၃၀ စက္ကန့်, သဘာဝကျကျ ပြော
+- 📄 **Reference Text:** အသံဖိုင်ထဲ ပြောထားတာနဲ့ **စကားလုံး အတိအကျ** တူရမယ်
+- ⏱️ **အချိန်:** စာရှည်ရင် အပိုင်းလိုက် ခွဲထုတ်, ပြီးမှ ဆက်
+- 💾 **Drive:** Output တွေ Drive မှာ ရှိတယ်, Colab ပိတ်လဲ မပျောက်ဘူး
+
+## ကန့်သတ်ချက်များ
+
+- Colab **free GPU** က အချိန်ကန့်သတ် ရှိတယ် (များသောအားဖြင့် နာရီအနည်းငယ်/နေ့)
+- GPU သုံးနေတုန်း browser tab ကို **ဖွင့်ထားရ**မယ်
+- Session ပြတ်ရင် model ပြန် load ရမယ် (၅-၁၀ မိနစ်)
+- တစ်ခါ တစ်ယောက်တည်း သုံးလို့ရတယ်
+
+## ပိုက်ဆံ ပေးချင်ရင်
+
+Colab Pro ($10/လ) ဆို GPU အချိန် ပိုရတယ်။ သို့မဟုတ် ဒီ repo ထဲက
+RunPod server ဖိုင်တွေ (`server.py`, `Dockerfile`) သုံးပြီး ကိုယ့် GPU server
+run လို့ရတယ် — အသေးစိတ် `README.md` မှာ ကြည့်။
