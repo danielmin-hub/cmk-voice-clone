@@ -1,46 +1,46 @@
-# CMK Voice Cloning API
+# CMK Voice Clone API
 
-A self-hosted voice cloning service. Upload a short voice sample once, then
-turn any text — including Myanmar (Burmese) — into speech in that voice.
+ကိုယ်ပိုင် voice clone service။ အသံတို တစ်ခု upload လုပ်ထားရုံနဲ့
+စာမှန်သမျှ — မြန်မာလို အပါအဝင် — ကို အဲဒီအသံနဲ့ ပြောခိုင်းလို့ရတယ်။
 
-Voice cloning API inspired by VoxCPM (openbmb). Original implementation.
+VoxCPM (openbmb) ကို အခြေခံထားတဲ့ ကိုယ်ပိုင် implementation။
 
 ---
 
-## How it works
+## အလုပ်လုပ်ပုံ
 
-1. **Record** 10–30 seconds of clear speech (a phone recording is fine).
-2. **Upload** it with the exact words you said — the transcript is what lets
-   the model lock onto your voice.
-3. **Speak** any text through the `/tts` endpoint using your `voice_id`.
+1. **အသံသွင်း** — ၁၀–၃၀ စက္ကန့်၊ ရှင်းရှင်းလင်းလင်း ပြောထားတာ (ဖုန်းနဲ့ သွင်းလဲ ရတယ်)။
+2. **Upload လုပ်** — သွင်းထားတဲ့ စကားရဲ့ စာသား အတိအကျ နဲ့ တွဲတင်ပေး။
+   စာသား မှန်မှ model က အသံကို မိမိရရ ဖမ်းနိုင်မယ်။
+3. **စာထည့် ပြောခိုင်း** — `/tts` ကို `voice_id` နဲ့ စာပို့၊ WAV ပြန်ရမယ်။
 
-The model (VoxCPM) downloads automatically from Hugging Face on first boot,
-so there is nothing to fetch by hand.
+Model (VoxCPM) က ပထမဆုံး run တဲ့အခါ Hugging Face ကနေ သူ့ဘာသာ download
+လုပ်တယ်။ ကိုယ်တိုင် ဘာမှ ဆွဲစရာ မလိုဘူး။
 
-## API quick reference
+## API အတိုချုပ်
 
-| Method | Path           | What it does                                              |
-|--------|----------------|-----------------------------------------------------------|
-| GET    | `/health`      | Is the model loaded? Which device? How many voices?       |
-| GET    | `/voices`      | Voices saved on this server                               |
-| POST   | `/upload-voice`| Form: `audio` file, `name`, `prompt_text` → `voice_id`    |
-| POST   | `/tts`         | JSON: `text`, `voice_id` (+ optional `guide`, `steps`)    |
-| POST   | `/clone`       | One-shot: `audio` + `text` → WAV, nothing stored          |
-| POST   | `/style-voice` | JSON: `text`, `style` ("warm narrator") — no sample needed|
+| Method | Path             | ဘာလုပ်လဲ                                              |
+|--------|------------------|--------------------------------------------------------|
+| GET    | `/health`        | Model load ပြီးပြီလား? ဘယ် device? voice ဘယ်နှခု?      |
+| GET    | `/voices`        | ဒီ server မှာ သိမ်းထားတဲ့ voice တွေ                   |
+| POST   | `/upload-voice`  | Form: `audio` file, `name`, `prompt_text` → `voice_id` |
+| POST   | `/tts`           | JSON: `text`, `voice_id` (+ `guide`, `steps` ရွေးနိုင်) |
+| POST   | `/clone`         | တစ်ခါသုံး: `audio` + `text` → WAV, ဘာမှ မသိမ်းဘူး       |
+| POST   | `/style-voice`   | JSON: `text`, `style` ("warm narrator") — sample မလို  |
 
-All audio in/out is 16 kHz mono WAV. Responses are the raw WAV bytes.
+အသံအဝင်/အထွက် အားလုံး 16 kHz mono WAV။ Response က WAV bytes အတိုင်း။
 
-Example — register a voice with curl:
+Voice register လုပ်တဲ့ နမူနာ (curl):
 
 ```bash
 curl -X POST http://POD_IP:8000/upload-voice \
   -F "audio=@my-voice.wav" \
-  -F "name=My Voice" \
-  -F "prompt_text=the exact words spoken in the recording"
-# -> {"voice_id": "a1b2c3d4e5f6", "label": "My Voice"}
+  -F "name=ကျွန်တော့်အသံ" \
+  -F "prompt_text=သွင်းထားတဲ့ စကား အတိအကျ"
+# -> {"voice_id": "a1b2c3d4e5f6", "label": "ကျွန်တော့်အသံ"}
 ```
 
-Example — speak:
+စာထည့် ပြောခိုင်းတဲ့ နမူနာ:
 
 ```bash
 curl -X POST http://POD_IP:8000/tts \
@@ -49,44 +49,43 @@ curl -X POST http://POD_IP:8000/tts \
   --output out.wav
 ```
 
-## Deploying on RunPod
+## RunPod မှာ တင်နည်း
 
-1. **Account + funds** — sign up at runpod.io and add ~$10 of credit to try it.
-2. **Get this code onto the pod.** Easiest: push these four files to a GitHub
-   repo, then in RunPod choose *Pods → Deploy → Build from GitHub* and point
-   it at the repo.
-3. **Pick a GPU.** RTX 4090 (~$0.50/hr) is comfortable for the default
-   0.5B model. The bigger VoxCPM 1.5/2 models need 16 GB+ VRAM.
-4. **Expose port 8000** (TCP) so you can reach the API.
-5. **Attach a network volume at `/workspace`.** Without this, uploaded voices
-   disappear every time the pod restarts.
-6. **Deploy and wait.** First boot downloads the model (~1.5 GB) and loads it —
-   give it 5–10 minutes, then open `http://POD_IP:8000/health`.
-   `"status": "ok"` means you are live.
+1. **Account + ပိုက်ဆံ** — runpod.io မှာ sign up လုပ်၊ $10 လောက် credit ထည့် စမ်းကြည့်။
+2. **Code ကို pod ပေါ် တင်။** အလွယ်ဆုံး: ဒီ ၄ ဖိုင်ကို GitHub repo မှာ တင်၊
+   RunPod မှာ *Pods → Deploy → Build from GitHub* ရွေး၊ repo ကို ညွှန်။
+3. **GPU ရွေး။** A40 (~$0.49/hr) က မူရင်း 0.5B model အတွက် လုံလောက်တယ်။
+   VoxCPM 1.5/2 အကြီးတွေ သုံးချင်ရင် VRAM 16 GB+ လိုတယ်။
+4. **Port 8000** (TCP) ဖွင့် — API ကို လှမ်းခေါ်လို့ရအောင်။
+5. **Network volume ကို `/workspace` မှာ attach လုပ်။** ဒါမလုပ်ရင်
+   pod restart တိုင်း upload လုပ်ထားတဲ့ voice တွေ ပျောက်မယ်။
+6. **Deploy နှိပ် စောင့်။** ပထမဆုံး boot မှာ model (~1.5 GB) download လုပ်
+   တယ် — ၅–၁၀ မိနစ် ပေးထား၊ ပြီးရင် `http://POD_IP:8000/health` ဖွင့်။
+   `"status": "ok"` ပြရင် အဆင်သင့်ဖြစ်ပြီ။
 
-### Switching models
+### Model ပြောင်းချင်ရင်
 
-Set the pod env var `CMK_VOX_MODEL`:
+Pod env var `CMK_VOX_MODEL` သတ်မှတ်:
 
-- `openbmb/VoxCPM-0.5B` — default, ~1.5 GB, runs on 8 GB VRAM
-- `openbmb/VoxCPM1.5` — ~1.9 GB, better quality
-- `openbmb/VoxCPM2` — ~4.6 GB, best quality, needs 16 GB+ VRAM
+- `openbmb/VoxCPM-0.5B` — မူရင်း၊ ~1.5 GB၊ VRAM 8 GB နဲ့ ရတယ်
+- `openbmb/VoxCPM1.5` — ~1.9 GB၊ အရည်အသွေး ပိုကောင်း
+- `openbmb/VoxCPM2` — ~4.6 GB၊ အကောင်းဆုံး၊ VRAM 16 GB+ လိုတယ်
 
-Other knobs: `CMK_GEN_TIMEOUT` (seconds, default 900),
-`CMK_USE_DENOISER=1` to enable the denoiser, `PORT`.
+ကျန်တဲ့ setting တွေ: `CMK_GEN_TIMEOUT` (စက္ကန့်၊ မူရင်း 900),
+denoiser ဖွင့်ချင်ရင် `CMK_USE_DENOISER=1`, `PORT`။
 
-## Tips for good clones
+## အသံလှလှ ရအောင် အကြံပြုချက်
 
-- Record in a quiet room, 10–30 seconds, natural speaking pace.
-- The `prompt_text` must match the recording **word for word**.
-- Myanmar text works — the splitter understands `။` as a sentence end.
-- If output sounds rushed, lower `guide` (try 1.6); if it ignores the voice,
-  raise it (try 2.6).
+- တိတ်ဆိတ်တဲ့ အခန်းမှာ သွင်း၊ ၁၀–၃၀ စက္ကန့်၊ သဘာဝကျကျ ပြော။
+- `prompt_text` က သွင်းထားတဲ့ အသံနဲ့ **စကားလုံး အတိအကျ** တူရမယ်။
+- မြန်မာစာ ရတယ် — `။` ကို စာကြောင်းဆုံး အဖြစ် နားလည်တယ်။
+- အထွက် မြန်နေသလို ခံစားရရင် `guide` လျှော့ (1.6 စမ်း); အသံကို
+  မလိုက်ဘူးဆို `guide` မြှင့် (2.6 စမ်း)။
 
-## Limits to know
+## သိထားရမယ့် ကန့်သတ်ချက်တွေ
 
-- One generation at a time per pod (GPU work is serialized). Busy service?
-  run a second pod.
-- No streaming — each request returns the complete WAV.
-- Burmese output quality should be spot-checked with real samples before
-  depending on it for production narration.
+- Pod တစ်ခု တစ်ခါ တစ်ခု ပဲ ထုတ်ပေးနိုင်တယ် (GPU အလုပ် တန်းစီရတယ်)။
+  လူများများ သုံးမယ်ဆို pod နှစ်ခု run။
+- Streaming မရဘူး — request တစ်ခုချင်းစီ WAV အပြည့်ပြန်ပေးတယ်။
+- မြန်မာ အထွက် အရည်အသွေး ကို အသံအစစ်နဲ့ စမ်းကြည့်ပြီးမှ
+  တကယ် သုံးဖို့ ဆုံးဖြတ်။
