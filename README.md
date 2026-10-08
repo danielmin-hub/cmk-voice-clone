@@ -85,4 +85,4 @@ Cell 5 run ပြီးရင် **Gradio link** ပေါ်လာမယ် →
 
 Colab Pro ($10/လ) ဆို GPU အချိန် ပိုရတယ်။ သို့မဟုတ် ဒီ repo ထဲက
 RunPod server ဖိုင်တွေ (`server.py`, `Dockerfile`) သုံးပြီး ကိုယ့် GPU server
-run လို့ရတယ် — အသေးစိတ် `README.md` မှာ ကြည့်။
+run လို့ရတယ် — အသေးစိတ် `README-MM.md` မှာ ကြည့်။
